@@ -27,6 +27,8 @@ import OSM from "ol/source/OSM";
 import "ol/ol.css";
 import { SVG } from "@svgdotjs/svg.js";
 
+import useSvgMapLayer from "@/composables/useSvgMapLayer.js";
+
 const chartDiv = ref(null);
 let map = ref(null);
 
@@ -34,19 +36,26 @@ let map = ref(null);
 // Fed to useSvgMapLayer for registering the svg dimensions.
 const chartWrapperDiv = ref(null);
 
+// The useFunction that does the gluing of an svg layer to the map.
+// it outputs:
+// - svgView to set up mercator calcs with correct pixel-height
+// - geoGroup the svg.js element to add any svg features to.
+const { geoGroup, conversions } = useSvgMapLayer(chartWrapperDiv, map);
+
 let tileLayer;
 
 onMounted(() => {
   mountMap();
   nextTick(() => {
     // Paint operations go here.
+    SVG().circle(50).addTo(geoGroup.value);
   });
 });
 
 function mountMap() {
   const mousePositionControl = new MousePosition({
     projection: "EPSG:4326",
-    coordinateFormat: createStringXY(4),
+    coordinateFormat: createStringXY(3),
   });
 
   tileLayer = new TileLayer({
@@ -61,7 +70,7 @@ function mountMap() {
     controls: defaultControls().extend([mousePositionControl]),
     projection: "EPSG:3857",
     // layers: [tileLayer],
-    // allOverlays: true,
+    allOverlays: true,
     view: new View({
       center: fromLonLat([0, 0]),
       projection: "EPSG:3857",
@@ -77,7 +86,7 @@ function mountMap() {
 
   map.value.addLayer(tileLayer);
 
-  map.value.addLayer(featureLayer);
+  // map.value.addLayer(featureLayer);
 }
 </script>
 
